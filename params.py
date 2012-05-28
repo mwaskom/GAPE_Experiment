@@ -14,7 +14,7 @@ gape = dict(
     fix_demo_color='#1E90FF',
     fix_antic_color='#FF2400',
     fix_resp_color='#7CFC00',
-    fix_catch_color='#FFFF00',
+    fix_catch_color='#F46F1B',
     fix_break_color='#BBBBBB',
 
     # Gratings
@@ -53,8 +53,7 @@ gape_sched = dict(
 
     # Event counts for make_schedule.py 
     n_cat=3,
-    n_blocks=12,
-    block_per_run=12,
+    n_blocks=9,
     stim_orients=[0, 45, 90, 135],
     seq_per_block=3,
     catch_per_block=2,

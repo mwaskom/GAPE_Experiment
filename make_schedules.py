@@ -15,7 +15,7 @@ def main(arglist):
     # Make a certain number of schedules
     # We'll ID each one with a letter and then
     # scramble the run - letter association across subjs
-    all_ids = list(letters[p.total_schedules]) + ["train_a", "train_b", "train_c"]
+    all_ids = list(letters[:p.total_schedules]) + ["train_a", "train_b", "train_c"]
     for id in all_ids:
         df = build_run_schedule(p)
         fname = op.join("sched", "schedule_%s.csv" % id)
@@ -56,8 +56,10 @@ def build_run_schedule(p):
     # Build the schedule
     for i, block_cat in enumerate(block_cat_sched):
 
+        with_rest = not (i + 1) % p.rest_every_n
+
         event_per_block = 1 + p.seq_per_block + p.catch_per_block
-        if i and not i % p.rest_every_n:
+        if with_rest:
             event_per_block += 1
         
 
@@ -75,7 +77,7 @@ def build_run_schedule(p):
         this_block = permutation(block_events)
         ev_types.append("demo")
         ev_types.extend(this_block)
-        if i and not i % p.rest_every_n:
+        if with_rest:
             ev_types.append("rest")
             itis.append(0)
 
@@ -87,7 +89,7 @@ def build_run_schedule(p):
                 block_odd.append(odd.pop())
             else:
                 block_odd.append(0)
-        if i and not i % p.rest_every_n:
+        if with_rest:
             block_odd.append(0)
         oddballs.extend(block_odd)
 

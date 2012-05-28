@@ -74,7 +74,7 @@ def run_experiment(arglist):
     # Set up some timing variables
     running_time = 0
     antic_secs = p.tr
-    demo_secs = 4 * p.demo_stim_dur + 3 * p.demo_stim_isi
+    demo_secs = 4 * p.demo_stim_dur + 3 * p.demo_stim_isi + p.tr
     seq_secs = p.tr + 4 * p.stim_dur + 3 * p.stim_isi
     catch_secs = p.tr
     rest_secs = p.rest_trs * p.tr
@@ -85,7 +85,7 @@ def run_experiment(arglist):
 
     Blue dot: sample sequence
     Red dot: get ready
-    Yellow dot: relax
+    Orange dot: relax
     Green dot: say if sequence matched the sample
     Button 1: same    Button 2: different
 
@@ -204,6 +204,11 @@ def run_experiment(arglist):
                         core.wait(p.demo_stim_isi)
                     check_quit()
 
+                # Demo always has >1 TR fixation
+                fix.draw()
+                win.flip()
+                wait_check_quit(p.tr)
+
                 # Update timing
                 running_time += demo_secs
 
@@ -245,7 +250,6 @@ def run_experiment(arglist):
                 trial_clock.reset()
                 event.clearEvents()
                 win.flip()
-                #core.wait(p.resp_dur)
                 acc, response, resp_rt = wait_get_response(p,
                                                            trial_clock,
                                                            s.oddball[t],
@@ -280,7 +284,6 @@ def run_experiment(arglist):
             running_time += this_iti
 
             
-
     finally:
         # Clean up
         f.close()
@@ -288,10 +291,11 @@ def run_experiment(arglist):
 
     # Good execution, print out some info
     try:
-        with open(fname, "r") as fid:
+        data_file = op.join("data", fname)
+        with open(data_file, "r") as fid:
             lines = fid.readlines()
             n_comments = len([l for l in lines if l.startswith("#")])
-        df = read_csv(fname, skiprows=n_comments, na_values=["-1"])
+        df = read_csv(data_file, skiprows=n_comments, na_values=["-1"])
 
         info = dict()
         time_error = df.event_sched - df.event_time
@@ -320,8 +324,9 @@ def run_experiment(arglist):
 def wait_get_response(p, clock, oddball, wait_time):
     """Get response info specific to this experiment."""
     check_clock = core.Clock()
+    good_resp = False
     corr, response, resp_rt = 0, 0, -1
-    while response == -1:
+    while not good_resp:
         keys = event.getKeys(timeStamped=clock)
         for key, stamp in keys:
             if key in p.quit_keys:
@@ -331,11 +336,13 @@ def wait_get_response(p, clock, oddball, wait_time):
                 corr = 0 if oddball else 1
                 response = 1
                 resp_rt = stamp
+                good_resp = True
                 break
             elif key in p.nonmatch_keys:
                 corr = 1 if oddball else 0
                 response = 2
                 resp_rt = stamp
+                good_resp = True
                 break
             event.clearEvents()
         # Possibly exit with nothing
