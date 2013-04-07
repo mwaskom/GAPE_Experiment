@@ -60,7 +60,7 @@ gape_sched = dict(
     max_repeat=2,
     n_search=1000,
     iti_options=[0, 1, 2],
-    oddball_prob=.25,
+    oddball_prob=1. / 3,
     total_schedules=12,
     rest_every_n=3,
 

@@ -25,11 +25,12 @@ def main(arglist):
 def build_run_schedule(p):
 
     # First get the category level order
-    block_cat_sched = tools.optimize_event_schedule(p.n_cat,
-                                                    p.n_blocks,
-                                                    p.max_repeat,
-                                                    p.n_search,
-                                                    enforce_balance=True)
+    n_macroblocks = p.n_blocks / 3
+    assert n_macroblocks - int(n_macroblocks) == 0
+    n_macroblocks = int(n_macroblocks)
+    block_cat_sched = [range(3) for i in range(n_macroblocks)]
+    block_cat_sched = map(permutation, block_cat_sched)
+    block_cat_sched = np.concatenate(block_cat_sched)
 
     # Set up the output lists
     itis = []
@@ -47,10 +48,17 @@ def build_run_schedule(p):
 
     # Set up the oddballs properly
     total_seqs = p.seq_per_block * p.n_blocks
-    total_oddballs = int(p.oddball_prob * total_seqs)
-    oddball_sched = (total_oddballs * [1] + 
-                     (total_seqs - total_oddballs) * [0])
-    oddball_sched = permutation(oddball_sched)
+    macro_seqs = total_seqs / n_macroblocks
+    assert macro_seqs - int(macro_seqs) == 0
+    macro_seqs = int(macro_seqs)
+    macro_oddballs = p.oddball_prob * macro_seqs
+    assert macro_oddballs - int(macro_oddballs) == 0
+    macro_oddballs = int(macro_oddballs)
+    oddball_sched = [(macro_oddballs * [1] +
+                     (macro_seqs - macro_oddballs) * [0])
+                     for i in range(n_macroblocks)]
+    oddball_sched = map(permutation, oddball_sched)
+    oddball_sched = np.concatenate(oddball_sched)
     oddball_scheds = np.split(oddball_sched, p.n_blocks)
 
     # Build the schedule
